@@ -22,13 +22,11 @@ def read_travis_yml():
     return yaml.load(open('.travis.yml', 'r'), Loader=yaml.SafeLoader)
 
 def docker_arch(travis_arch):
-    if travis_arch == 'arm64':
-        return 'arm64v8'
-    return travis_arch
+    return 'arm64v8' if travis_arch == 'arm64' else travis_arch
 
 def env_parse(env, arch):
     kv_str = env.split()
-    kv = { k: v for k, v in [ s.split('=') for s in kv_str ] }
+    kv = dict([ s.split('=') for s in kv_str ])
 
     # Ugly trick to prepare for running commands for this image
     try:
@@ -50,10 +48,10 @@ def env_parse(env, arch):
         return None
 
     # e.g. ubuntu:latest
-    image = '%s:%s' % (kv['IMAGE'], kv['IMAGE_TAG'])
+    image = f"{kv['IMAGE']}:{kv['IMAGE_TAG']}"
 
     if arch != 'amd64':
-        image_prefix = docker_arch(arch) + '/'
+        image_prefix = f'{docker_arch(arch)}/'
         os.environ['IMAGE_PREFIX'] = image_prefix
         return image_prefix + image
 
